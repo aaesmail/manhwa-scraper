@@ -130,6 +130,7 @@ def print_unread_manhwa(unread_manhwa_list):
 
 if __name__ == "__main__":
     start_time = time.time()
+    print()
     main()
     end_time = time.time()
     time_taken = '{:.2f}'.format(end_time - start_time)
