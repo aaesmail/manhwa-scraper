@@ -1,5 +1,6 @@
 import os
 import json
+import time
 
 from bs4 import BeautifulSoup
 import urllib3
@@ -108,16 +109,22 @@ def get_chrome_history():
     c = con.cursor()
     c.execute('select url from urls')
     results = c.fetchall()
+    con.close()
     real_results = []
     for result in results:
         real_results.append(result[0])
     return real_results
 
 def print_unread_manhwa(unread_manhwa_list):
-    for manhwa in unread_manhwa_list:
-        print(manhwa)
+    print()
+    for i, manhwa in enumerate(unread_manhwa_list):
+        print(' ' + str(i + 1) + ') ' + manhwa)
+    print()
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
-    print('Done!')
+    end_time = time.time()
+    time_taken = '{:.2f}'.format(end_time - start_time)
+    print(' Finished in ' + time_taken + ' sec')
     input()
