@@ -8,4 +8,5 @@ A python script to go through links in manhwa favorites folder in Chrome and rep
   - Have python installed on your machine
   - Open a terminal in script location
   - Run `pip install -r requirements.txt`
+  - Make sure chrome is closed (To not deny the DB connection)
   - Run `py manhwa_scraper.py`
