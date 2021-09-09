@@ -1,24 +1,30 @@
 import os
 import json
 import time
+import sqlite3
 
 from bs4 import BeautifulSoup
 import urllib3
-import sqlite3
 
 CHROME_BOOKMARKS_LOCATION = 'C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks'
 CHROME_HISTORY_LOCATION = 'C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History'
 
-def main():
-    Bookmarks_filename = CHROME_BOOKMARKS_LOCATION
-    if os.path.isfile(Bookmarks_filename):
-        with open(Bookmarks_filename, 'r', encoding='cp932', errors='ignore') as data_file:
-            process(data_file)
-    else:
-        print('Bookmarks File not found!')
+history = []
 
-def process(file):
-    manhwa_folder = get_manhwa_folder(json.load(file)['roots']['bookmark_bar']['children'])
+def main():
+    global history
+    history = get_chrome_history()
+
+    if not os.path.isfile(CHROME_BOOKMARKS_LOCATION):
+        raise('Bookmarks File not found!')
+
+    with open(CHROME_BOOKMARKS_LOCATION, 'r', encoding='cp932', errors='ignore') as data_file:
+        bookmarks = json.load(data_file)
+
+    process(bookmarks)
+
+def process(bookmarks):
+    manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
     manhwas_list = get_manhwa_name_and_url(manhwa_folder)
     unread_manhwa_list = get_unread_manhwa(manhwas_list)
     print_unread_manhwa(unread_manhwa_list)
@@ -37,7 +43,6 @@ def get_manhwa_name_and_url(manhwa_folder):
     return clean_list
 
 def get_unread_manhwa(manhwa_list):
-    history = get_chrome_history()
     unread_manhwa = []
     for manhwa in manhwa_list:
         webpage = get_webpage(manhwa['url'])
@@ -47,6 +52,8 @@ def get_unread_manhwa(manhwa_list):
             lastest_chapter = get_latest_chapter(chapter_urls)
             if not lastest_chapter['url'] in history:
                 unread_manhwa.append(manhwa['name'])
+        else:
+            print(' Dynamically rendered page: ' + manhwa['name'])
     return unread_manhwa
 
 def get_webpage(url):
