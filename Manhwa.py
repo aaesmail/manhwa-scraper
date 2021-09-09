@@ -119,4 +119,5 @@ def print_unread_manhwa(unread_manhwa_list):
 
 if __name__ == "__main__":
     main()
+    print('Done!')
     input()
