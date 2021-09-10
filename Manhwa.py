@@ -112,7 +112,7 @@ def get_number_starting_position(url):
     if chapter_index >= 0:
         number_index = chapter_index + 8
     elif ep_index >= 0:
-        number_index = ep_index + 4
+        number_index = url.get_text().lower().find('#') + 1
     return number_index
 
 def get_chrome_history():
