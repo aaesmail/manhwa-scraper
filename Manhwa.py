@@ -80,9 +80,15 @@ def get_latest_chapter(chapters_urls):
     for chapter_url in chapters_urls:
         chapter_number = get_chapter_number(chapter_url)
         chapters.append({ 'number': chapter_number, 'url': chapter_url['href'] })
-    chapters = sorted(chapters, key=lambda item: item['number'])
 
-    return chapters[len(chapters) - 1]
+    latest_chapter_index = 0
+    latest_chapter_number = chapters[0]['number']
+    for i, chapter in enumerate(chapters):
+        if chapter['number'] > latest_chapter_number:
+            latest_chapter_number = chapter['number']
+            latest_chapter_index = i
+
+    return chapters[latest_chapter_index]
 
 def get_chapter_number(chapter_url):
     number_index = get_number_starting_position(chapter_url)
