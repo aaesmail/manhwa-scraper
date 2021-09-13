@@ -51,16 +51,22 @@ def get_manhwa_name_and_url(manhwa_folder):
     return clean_list
 
 def get_unread_manhwa(manhwa_list):
+    global dynamic_pages
+    global unread_manhwa
+
     threads = []
-    for manhwa in manhwa_list:
-        thread = threading.Thread(target=append_unread_chapter, args=(manhwa,))
+    for i, manhwa in enumerate(manhwa_list):
+        thread = threading.Thread(target=append_unread_chapter, args=(manhwa, i,))
         thread.start()
         threads.append(thread)
 
     for thread in threads:
         thread.join()
 
-def append_unread_chapter(manhwa):
+    dynamic_pages.sort(key=lambda tup:tup[0])
+    unread_manhwa.sort(key=lambda tup:tup[0])
+
+def append_unread_chapter(manhwa, order):
     global unread_manhwa
     global unread_manhwa_lock
     global dynamic_pages
@@ -73,11 +79,11 @@ def append_unread_chapter(manhwa):
         lastest_chapter = get_latest_chapter(chapter_urls)
         if not lastest_chapter['url'] in history:
             unread_manhwa_lock.acquire()
-            unread_manhwa.append(manhwa['name'])
+            unread_manhwa.append((order, manhwa['name']))
             unread_manhwa_lock.release()
     else:
         dynamic_pages_lock.acquire()
-        dynamic_pages.append(manhwa['name'])
+        dynamic_pages.append((order, manhwa['name']))
         dynamic_pages_lock.release()
 
 def get_webpage(url):
@@ -155,13 +161,13 @@ def get_chrome_history():
 def print_dynamic_pages():
     print()
     for page in dynamic_pages:
-        print(' Dynamically rendered page: ' + page)
+        print(' Dynamically rendered page: ' + page[1])
     print()
 
 def print_unread_manhwa():
     print()
     for i, manhwa in enumerate(unread_manhwa):
-        print(' ' + str(i + 1) + ') ' + manhwa)
+        print(' ' + str(i + 1) + ') ' + manhwa[1])
     print()
 
 if __name__ == "__main__":
