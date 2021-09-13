@@ -2,6 +2,7 @@ import os
 import json
 import time
 import sqlite3
+import threading
 
 from bs4 import BeautifulSoup
 import urllib3
@@ -10,6 +11,12 @@ CHROME_BOOKMARKS_LOCATION = 'C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\Us
 CHROME_HISTORY_LOCATION = 'C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History'
 
 history = []
+
+dynamic_pages = []
+dynamic_pages_lock = threading.Lock()
+
+unread_manhwa = []
+unread_manhwa_lock = threading.Lock()
 
 def main():
     global history
@@ -26,8 +33,9 @@ def main():
 def process(bookmarks):
     manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
     manhwas_list = get_manhwa_name_and_url(manhwa_folder)
-    unread_manhwa_list = get_unread_manhwa(manhwas_list)
-    print_unread_manhwa(unread_manhwa_list)
+    get_unread_manhwa(manhwas_list)
+    print_dynamic_pages()
+    print_unread_manhwa()
 
 def get_manhwa_folder(bookmarks_folders):
     for folder in bookmarks_folders:
@@ -43,18 +51,34 @@ def get_manhwa_name_and_url(manhwa_folder):
     return clean_list
 
 def get_unread_manhwa(manhwa_list):
-    unread_manhwa = []
+    threads = []
     for manhwa in manhwa_list:
-        webpage = get_webpage(manhwa['url'])
-        urls = get_urls(webpage)
-        chapter_urls = filter_chapter_urls(urls)
-        if len(chapter_urls) > 0:
-            lastest_chapter = get_latest_chapter(chapter_urls)
-            if not lastest_chapter['url'] in history:
-                unread_manhwa.append(manhwa['name'])
-        else:
-            print(' Dynamically rendered page: ' + manhwa['name'])
-    return unread_manhwa
+        thread = threading.Thread(target=append_unread_chapter, args=(manhwa,))
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+
+def append_unread_chapter(manhwa):
+    global unread_manhwa
+    global unread_manhwa_lock
+    global dynamic_pages
+    global dynamic_pages_lock
+
+    webpage = get_webpage(manhwa['url'])
+    urls = get_urls(webpage)
+    chapter_urls = filter_chapter_urls(urls)
+    if len(chapter_urls) > 0:
+        lastest_chapter = get_latest_chapter(chapter_urls)
+        if not lastest_chapter['url'] in history:
+            unread_manhwa_lock.acquire()
+            unread_manhwa.append(manhwa['name'])
+            unread_manhwa_lock.release()
+    else:
+        dynamic_pages_lock.acquire()
+        dynamic_pages.append(manhwa['name'])
+        dynamic_pages_lock.release()
 
 def get_webpage(url):
     page = urllib3.PoolManager().request('GET', url)
@@ -128,15 +152,20 @@ def get_chrome_history():
         real_results.append(result[0])
     return real_results
 
-def print_unread_manhwa(unread_manhwa_list):
+def print_dynamic_pages():
     print()
-    for i, manhwa in enumerate(unread_manhwa_list):
+    for page in dynamic_pages:
+        print(' Dynamically rendered page: ' + page)
+    print()
+
+def print_unread_manhwa():
+    print()
+    for i, manhwa in enumerate(unread_manhwa):
         print(' ' + str(i + 1) + ') ' + manhwa)
     print()
 
 if __name__ == "__main__":
     start_time = time.time()
-    print()
     main()
     end_time = time.time()
     time_taken = '{:.2f}'.format(end_time - start_time)
