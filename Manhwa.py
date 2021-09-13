@@ -7,8 +7,13 @@ import threading
 from bs4 import BeautifulSoup
 import urllib3
 
-CHROME_BOOKMARKS_LOCATION = 'C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Bookmarks'
-CHROME_HISTORY_LOCATION = 'C:\\Users\\user\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History'
+MANHWA_BOOKMARK_FOLDER_NAME = 'Manhwa'
+
+APP_DATA = os.getenv('LOCALAPPDATA')
+GOOGLE_CHROME_DATA = os.path.join(APP_DATA, 'Google', 'Chrome', 'User Data', 'Default')
+
+CHROME_BOOKMARKS_LOCATION =  os.path.join(GOOGLE_CHROME_DATA, 'Bookmarks')
+CHROME_HISTORY_LOCATION = os.path.join(GOOGLE_CHROME_DATA, 'History')
 
 history = []
 
@@ -39,7 +44,7 @@ def process(bookmarks):
 
 def get_manhwa_folder(bookmarks_folders):
     for folder in bookmarks_folders:
-        if folder['type'] == 'folder' and folder['name'] == 'Manhwa':
+        if folder['type'] == 'folder' and folder['name'] == MANHWA_BOOKMARK_FOLDER_NAME:
             return folder['children']
     raise Exception('Manhwa Bookmark folder not found!')
 
