@@ -7,7 +7,7 @@ import threading
 from bs4 import BeautifulSoup
 import urllib3
 
-MANHWA_BOOKMARK_FOLDER_NAME = 'Manhua'
+MANHUA_BOOKMARK_FOLDER_NAME = 'Manhua'
 
 APP_DATA = os.getenv('LOCALAPPDATA')
 GOOGLE_CHROME_DATA = os.path.join(APP_DATA, 'Google', 'Chrome', 'User Data', 'Default')
@@ -20,8 +20,8 @@ history = []
 dynamic_pages = []
 dynamic_pages_lock = threading.Lock()
 
-unread_manhwa = []
-unread_manhwa_lock = threading.Lock()
+unread_manhua = []
+unread_manhua_lock = threading.Lock()
 
 def main():
     global history
@@ -36,32 +36,32 @@ def main():
     process(bookmarks)
 
 def process(bookmarks):
-    manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
-    manhwas_list = get_manhwa_name_and_url(manhwa_folder)
-    get_unread_manhwa(manhwas_list)
+    manhua_folder = get_manhua_folder(bookmarks['roots']['bookmark_bar']['children'])
+    manhuas_list = get_manhua_name_and_url(manhua_folder)
+    get_unread_manhua(manhuas_list)
     print_dynamic_pages()
-    print_unread_manhwa()
+    print_unread_manhua()
 
-def get_manhwa_folder(bookmarks_folders):
+def get_manhua_folder(bookmarks_folders):
     for folder in bookmarks_folders:
-        if folder['type'] == 'folder' and folder['name'] == MANHWA_BOOKMARK_FOLDER_NAME:
+        if folder['type'] == 'folder' and folder['name'] == MANHUA_BOOKMARK_FOLDER_NAME:
             return folder['children']
-    raise Exception('Manhwa Bookmark folder not found!')
+    raise Exception('Manhua Bookmark folder not found!')
 
-def get_manhwa_name_and_url(manhwa_folder):
+def get_manhua_name_and_url(manhua_folder):
     clean_list = []
-    for manhwa in manhwa_folder:
-        if manhwa['type'] == 'url':
-            clean_list.append({ 'name': manhwa['name'], 'url': manhwa['url'] })
+    for manhua in manhua_folder:
+        if manhua['type'] == 'url':
+            clean_list.append({ 'name': manhua['name'], 'url': manhua['url'] })
     return clean_list
 
-def get_unread_manhwa(manhwa_list):
+def get_unread_manhua(manhua_list):
     global dynamic_pages
-    global unread_manhwa
+    global unread_manhua
 
     threads = []
-    for i, manhwa in enumerate(manhwa_list):
-        thread = threading.Thread(target=append_unread_chapter, args=(manhwa, i,))
+    for i, manhua in enumerate(manhua_list):
+        thread = threading.Thread(target=append_unread_chapter, args=(manhua, i,))
         thread.start()
         threads.append(thread)
 
@@ -69,26 +69,26 @@ def get_unread_manhwa(manhwa_list):
         thread.join()
 
     dynamic_pages.sort(key=lambda tup:tup[0])
-    unread_manhwa.sort(key=lambda tup:tup[0])
+    unread_manhua.sort(key=lambda tup:tup[0])
 
-def append_unread_chapter(manhwa, order):
-    global unread_manhwa
-    global unread_manhwa_lock
+def append_unread_chapter(manhua, order):
+    global unread_manhua
+    global unread_manhua_lock
     global dynamic_pages
     global dynamic_pages_lock
 
-    webpage = get_webpage(manhwa['url'])
+    webpage = get_webpage(manhua['url'])
     urls = get_urls(webpage)
     chapter_urls = filter_chapter_urls(urls)
     if len(chapter_urls) > 0:
         lastest_chapter = get_latest_chapter(chapter_urls)
         if not lastest_chapter['url'] in history:
-            unread_manhwa_lock.acquire()
-            unread_manhwa.append((order, manhwa['name']))
-            unread_manhwa_lock.release()
+            unread_manhua_lock.acquire()
+            unread_manhua.append((order, manhua['name']))
+            unread_manhua_lock.release()
     else:
         dynamic_pages_lock.acquire()
-        dynamic_pages.append((order, manhwa['name']))
+        dynamic_pages.append((order, manhua['name']))
         dynamic_pages_lock.release()
 
 def get_webpage(url):
@@ -169,10 +169,10 @@ def print_dynamic_pages():
         print(' Dynamically rendered page: ' + page[1])
     print()
 
-def print_unread_manhwa():
+def print_unread_manhua():
     print()
-    for i, manhwa in enumerate(unread_manhwa):
-        print(' ' + str(i + 1) + ') ' + manhwa[1])
+    for i, manhua in enumerate(unread_manhua):
+        print(' ' + str(i + 1) + ') ' + manhua[1])
     print()
 
 if __name__ == "__main__":
