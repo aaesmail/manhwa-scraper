@@ -3,7 +3,7 @@ A python script to go through links in manhwa favorites folder in Chrome and rep
 
 - This is made to only work on windows 10 machines.
 - This script only works with Server Side Rendered pages.
-- It reports which pages are dynamically rendered.
+- It reports which pages failed.
 - The user has to manually replace dynamically rendered pages with statically rendered ones in the favorites Manhwa folder.
 
 ## How to run:
