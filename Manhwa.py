@@ -166,7 +166,7 @@ def get_chrome_history():
 def print_dynamic_pages():
     print()
     for page in dynamic_pages:
-        print(' Dynamically rendered page: ' + page[1])
+        print(' Failed: ' + page[1])
     print()
 
 def print_unread_manhwa():
