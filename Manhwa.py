@@ -25,10 +25,15 @@ unread_manhwa_lock = threading.Lock()
 
 def main():
     global history
-    history = get_chrome_history()
+    try:
+        history = get_chrome_history()
+    except BaseException as e:
+        print(e)
+        return
 
     if not os.path.isfile(CHROME_BOOKMARKS_LOCATION):
-        raise('Bookmarks File not found!')
+        print(' Bookmarks File not found!')
+        return
 
     with open(CHROME_BOOKMARKS_LOCATION, 'r', encoding='cp932', errors='ignore') as data_file:
         bookmarks = json.load(data_file)
@@ -36,7 +41,12 @@ def main():
     process(bookmarks)
 
 def process(bookmarks):
-    manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
+    try:
+        manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
+    except BaseException as e:
+        print(e)
+        return
+
     manhwas_list = get_manhwa_name_and_url(manhwa_folder)
     get_unread_manhwa(manhwas_list)
     print_dynamic_pages()
@@ -46,7 +56,7 @@ def get_manhwa_folder(bookmarks_folders):
     for folder in bookmarks_folders:
         if folder['type'] == 'folder' and folder['name'] == MANHWA_BOOKMARK_FOLDER_NAME:
             return folder['children']
-    raise Exception('Manhwa Bookmark folder not found!')
+    raise Exception(' Manhwa Bookmark folder not found!')
 
 def get_manhwa_name_and_url(manhwa_folder):
     clean_list = []
@@ -72,24 +82,19 @@ def get_unread_manhwa(manhwa_list):
     unread_manhwa.sort(key=lambda tup:tup[0])
 
 def append_unread_chapter(manhwa, order):
-    global unread_manhwa
-    global unread_manhwa_lock
-    global dynamic_pages
-    global dynamic_pages_lock
+    try:
+        webpage = get_webpage(manhwa['url'])
+    except:
+        return append_failed_manhwa(order, manhwa)
 
-    webpage = get_webpage(manhwa['url'])
     urls = get_urls(webpage)
     chapter_urls = filter_chapter_urls(urls)
     if len(chapter_urls) > 0:
         lastest_chapter = get_latest_chapter(chapter_urls)
         if not lastest_chapter['url'] in history:
-            unread_manhwa_lock.acquire()
-            unread_manhwa.append((order, manhwa['name']))
-            unread_manhwa_lock.release()
+            append_unread_manhwa(order, manhwa)
     else:
-        dynamic_pages_lock.acquire()
-        dynamic_pages.append((order, manhwa['name']))
-        dynamic_pages_lock.release()
+        append_failed_manhwa(order, manhwa)
 
 def get_webpage(url):
     page = urllib3.PoolManager().request('GET', url)
@@ -150,14 +155,33 @@ def get_number_starting_position(url):
         number_index = url.get_text().lower().find('#') + 1
     return number_index
 
+def append_unread_manhwa(order, manhwa):
+    global unread_manhwa
+    global unread_manhwa_lock
+    unread_manhwa_lock.acquire()
+    unread_manhwa.append((order, manhwa['name']))
+    unread_manhwa_lock.release()
+
+def append_failed_manhwa(order, manhwa):
+    global dynamic_pages
+    global dynamic_pages_lock
+    dynamic_pages_lock.acquire()
+    dynamic_pages.append((order, manhwa['name']))
+    dynamic_pages_lock.release()
+
 def get_chrome_history():
     if not os.path.isfile(CHROME_HISTORY_LOCATION):
-        raise('History File not found!')
-    con = sqlite3.connect(CHROME_HISTORY_LOCATION)
-    c = con.cursor()
-    c.execute('select url from urls')
-    results = c.fetchall()
-    con.close()
+        raise Exception(' History File not found!')
+
+    try:
+        con = sqlite3.connect(CHROME_HISTORY_LOCATION)
+        c = con.cursor()
+        c.execute('select url from urls')
+        results = c.fetchall()
+        con.close()
+    except:
+        raise Exception(' Failed to connect to Chrome history DB, Please make sure Chrome is closed!')
+
     real_results = []
     for result in results:
         real_results.append(result[0])
