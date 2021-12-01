@@ -32,7 +32,7 @@ def main():
         return
 
     if not os.path.isfile(CHROME_BOOKMARKS_LOCATION):
-        print(' Bookmarks File not found!')
+        print('\n Bookmarks File not found!')
         return
 
     with open(CHROME_BOOKMARKS_LOCATION, 'r', encoding='cp932', errors='ignore') as data_file:
@@ -56,7 +56,7 @@ def get_manhwa_folder(bookmarks_folders):
     for folder in bookmarks_folders:
         if folder['type'] == 'folder' and folder['name'] == MANHWA_BOOKMARK_FOLDER_NAME:
             return folder['children']
-    raise Exception(' Manhwa Bookmark folder not found!')
+    raise Exception('\n Manhwa Bookmark folder not found!')
 
 def get_manhwa_name_and_url(manhwa_folder):
     clean_list = []
@@ -171,7 +171,7 @@ def append_failed_manhwa(order, manhwa):
 
 def get_chrome_history():
     if not os.path.isfile(CHROME_HISTORY_LOCATION):
-        raise Exception(' History File not found!')
+        raise Exception('\n History File not found!')
 
     try:
         con = sqlite3.connect(CHROME_HISTORY_LOCATION)
@@ -180,7 +180,7 @@ def get_chrome_history():
         results = c.fetchall()
         con.close()
     except:
-        raise Exception(' Failed to connect to Chrome history DB, Please make sure Chrome is closed!')
+        raise Exception('\n Failed to connect to Chrome history DB, Please make sure Chrome is closed!')
 
     real_results = []
     for result in results:
@@ -204,5 +204,5 @@ if __name__ == "__main__":
     main()
     end_time = time.time()
     time_taken = '{:.2f}'.format(end_time - start_time)
-    print(' Finished in ' + time_taken + ' sec')
+    print('\n Finished in ' + time_taken + ' sec')
     input()
