@@ -25,15 +25,10 @@ unread_manhwa_lock = threading.Lock()
 
 def main():
     global history
-    try:
-        history = get_chrome_history()
-    except BaseException as e:
-        print(e)
-        return
+    history = get_chrome_history()
 
     if not os.path.isfile(CHROME_BOOKMARKS_LOCATION):
-        print('\n Bookmarks File not found!\n')
-        return
+        raise Exception(' Bookmarks File not found!')
 
     with open(CHROME_BOOKMARKS_LOCATION, 'r', encoding='cp932', errors='ignore') as data_file:
         bookmarks = json.load(data_file)
@@ -41,12 +36,7 @@ def main():
     process(bookmarks)
 
 def process(bookmarks):
-    try:
-        manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
-    except BaseException as e:
-        print(e)
-        return
-
+    manhwa_folder = get_manhwa_folder(bookmarks['roots']['bookmark_bar']['children'])
     manhwas_list = get_manhwa_name_and_url(manhwa_folder)
     get_unread_manhwa(manhwas_list)
     print_dynamic_pages()
@@ -56,7 +46,7 @@ def get_manhwa_folder(bookmarks_folders):
     for folder in bookmarks_folders:
         if folder['type'] == 'folder' and folder['name'] == MANHWA_BOOKMARK_FOLDER_NAME:
             return folder['children']
-    raise Exception('\n Manhwa Bookmark folder not found!\n')
+    raise Exception(' Manhwa Bookmark folder not found!')
 
 def get_manhwa_name_and_url(manhwa_folder):
     clean_list = []
@@ -84,7 +74,8 @@ def get_unread_manhwa(manhwa_list):
 def append_unread_chapter(order, manhwa):
     try:
         webpage = get_webpage(manhwa['url'])
-    except:
+    except Exception as e:
+        print(e)
         return append_failed_manhwa(order, manhwa)
 
     urls = get_urls(webpage)
@@ -171,7 +162,7 @@ def append_failed_manhwa(order, manhwa):
 
 def get_chrome_history():
     if not os.path.isfile(CHROME_HISTORY_LOCATION):
-        raise Exception('\n History File not found!\n')
+        raise Exception(' History File not found!')
 
     try:
         con = sqlite3.connect(CHROME_HISTORY_LOCATION)
@@ -180,7 +171,7 @@ def get_chrome_history():
         results = c.fetchall()
         con.close()
     except:
-        raise Exception('\n Failed to connect to Chrome history DB, Please make sure Chrome is closed!\n')
+        raise Exception(' Failed to connect to Chrome history DB, Please make sure Chrome is closed!')
 
     real_results = []
     for result in results:
@@ -201,7 +192,14 @@ def print_unread_manhwa():
 
 if __name__ == "__main__":
     start_time = time.time()
-    main()
+
+    try:
+        main()
+    except Exception as err:
+        print()
+        print(err)
+        print()
+
     end_time = time.time()
     time_taken = '{:.2f}'.format(end_time - start_time)
     print(' Finished in ' + time_taken + ' sec')
