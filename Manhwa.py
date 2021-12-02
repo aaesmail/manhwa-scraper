@@ -74,8 +74,7 @@ def get_unread_manhwa(manhwa_list):
 def append_unread_chapter(order, manhwa):
     try:
         webpage = get_webpage(manhwa['url'])
-    except Exception as e:
-        print(e)
+    except:
         return append_failed_manhwa(order, manhwa)
 
     urls = get_urls(webpage)
