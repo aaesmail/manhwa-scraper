@@ -1,6 +1,7 @@
 # Manhwa-Scraper
 A python script to go through links in manhwa favorites folder in Chrome and reports what manhwa has new updates not yet read
 
+- Works on python version 3.10.1 (Most likely also works on other versions).
 - This is made to only work on windows 10 machines.
 - This script only works with Server Side Rendered pages.
 - It reports which pages failed.
