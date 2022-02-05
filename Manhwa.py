@@ -23,8 +23,6 @@ dynamic_pages_lock = threading.Lock()
 unread_manhwa = []
 unread_manhwa_lock = threading.Lock()
 
-http = urllib3.PoolManager(num_pools=100)
-
 def main():
     global history
     history = get_chrome_history()
@@ -89,8 +87,7 @@ def append_unread_chapter(order, manhwa):
         append_failed_manhwa(order, manhwa)
 
 def get_webpage(url):
-    global http
-    page = http.request('GET', url, timeout=60)
+    page = urllib3.PoolManager().request('GET', url, timeout=60)
     return BeautifulSoup(page.data, 'html.parser')
 
 def get_urls(webpage):
