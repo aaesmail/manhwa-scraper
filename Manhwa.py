@@ -87,7 +87,7 @@ def append_unread_chapter(order, manhwa):
         append_failed_manhwa(order, manhwa)
 
 def get_webpage(url):
-    page = urllib3.PoolManager().request('GET', url)
+    page = urllib3.PoolManager().request('GET', url, timeout=60)
     return BeautifulSoup(page.data, 'html.parser')
 
 def get_urls(webpage):
