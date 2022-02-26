@@ -137,22 +137,20 @@ def get_chapter_number(chapter_url):
 
 def get_number_starting_position(url):
     chapter_index = url.get_text().lower().find('chapter')
-    ep_index = url.get_text().lower().find('ep.')
     episode_index = url.get_text().lower().find('episode')
-    chapter_number_index = -1
-    ep_number_index = -1
-    episode_number_index = -1
+    ep_index = url.get_text().lower().find('ep.')
+    number_index = -1
 
     if chapter_index >= 0:
-        chapter_number_index = chapter_index + 8
+        number_index = chapter_index + 8
 
-    if ep_index >= 0:
-        ep_number_index = url.get_text().lower().find('#') + 1
+    elif episode_index >= 0:
+        number_index = episode_index + 8
 
-    if episode_index >= 0:
-        episode_number_index = episode_index + 8
+    elif ep_index >= 0:
+        number_index = url.get_text().lower().find('#') + 1
 
-    return max(chapter_number_index, ep_number_index, episode_number_index)
+    return number_index
 
 def append_unread_manhwa(order, manhwa):
     global unread_manhwa
