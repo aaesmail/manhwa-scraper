@@ -194,7 +194,11 @@ def print_unread_manhwa():
     print()
     for i, manhwa in enumerate(unread_manhwa):
         print(' ' + str(i + 1) + ') ' + manhwa[1])
-    print()
+
+    if len(unread_manhwa) == 0:
+        print(" You're all caught up!")
+
+    print('\n')
 
 if __name__ == "__main__":
     start_time = time.time()
